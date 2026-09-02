@@ -1,0 +1,703 @@
+<meta charset="utf-8">
+<title>Daybook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap">
+<style>
+:root{
+  --ground:#E7E9E5; --surface:#FAFBF9; --surface2:#F0F2EE; --raise:#FFFFFF;
+  --ink:#171A16; --ink2:#5C6358; --ink3:#8A9186;
+  --hair:#D2D6CD; --hair2:#E1E4DC;
+  --accent:#33406B; --accent-soft:#E2E6F0;
+  --on-ink:#FAFBF9; --on-accent:#FAFBF9;
+  --empty-fill:transparent; --empty-line:#CFD4C9;
+  --shadow:0 1px 2px rgba(20,24,18,.06), 0 12px 34px rgba(20,24,18,.10);
+  --sh-lift:0 1px 2px rgba(20,24,18,.08), 0 26px 60px rgba(20,24,18,.16);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#101215; --surface:#191C20; --surface2:#212429; --raise:#262A2F;
+    --ink:#E7EAE4; --ink2:#98A093; --ink3:#6E7670;
+    --hair:#2C3138; --hair2:#242830;
+    --accent:#93A4DA; --accent-soft:#232A3C;
+    --on-ink:#12151A; --on-accent:#12151A;
+    --empty-fill:transparent; --empty-line:#31363D;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 34px rgba(0,0,0,.45);
+    --sh-lift:0 1px 2px rgba(0,0,0,.5), 0 26px 60px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#101215; --surface:#191C20; --surface2:#212429; --raise:#262A2F;
+  --ink:#E7EAE4; --ink2:#98A093; --ink3:#6E7670;
+  --hair:#2C3138; --hair2:#242830;
+  --accent:#93A4DA; --accent-soft:#232A3C;
+  --on-ink:#12151A; --on-accent:#12151A;
+  --empty-fill:transparent; --empty-line:#31363D;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 34px rgba(0,0,0,.45);
+  --sh-lift:0 1px 2px rgba(0,0,0,.5), 0 26px 60px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:Archivo,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px; margin:0 auto; padding:56px 24px 96px}
+.eyebrow{
+  font-size:11px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink3); margin:0 0 14px;
+}
+h1{
+  font-family:Newsreader,Georgia,serif; font-weight:500; font-size:clamp(40px,7vw,68px);
+  line-height:1.02; letter-spacing:-.015em; margin:0 0 16px; text-wrap:balance;
+}
+h1 em{font-style:italic; color:var(--ink2)}
+.lede{max-width:62ch; font-size:17px; color:var(--ink2); margin:0}
+.rule{height:1px; background:var(--hair); border:0; margin:44px 0}
+
+/* ---------- stage ---------- */
+.stage{display:grid; grid-template-columns:minmax(0,1fr) 390px minmax(0,1fr); gap:34px; align-items:start}
+@media (max-width:1000px){ .stage{grid-template-columns:1fr; justify-items:center} }
+.rail{display:flex; flex-direction:column; gap:22px; padding-top:26px; max-width:330px}
+.rail.left{justify-self:end; text-align:right}
+@media (max-width:1000px){ .rail,.rail.left{text-align:left; justify-self:stretch; max-width:none; padding-top:0} }
+.note h4{
+  margin:0 0 4px; font-size:12px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--accent);
+}
+.note p{margin:0; font-size:13.5px; color:var(--ink2); line-height:1.5}
+
+/* ---------- device ---------- */
+.device{
+  width:390px; height:844px; border-radius:46px; background:var(--surface);
+  border:1px solid var(--hair); box-shadow:var(--sh-lift); position:relative; overflow:hidden;
+  display:flex; flex-direction:column;
+}
+.notch{
+  position:absolute; top:9px; left:50%; transform:translateX(-50%);
+  width:110px; height:26px; border-radius:14px; background:var(--ink); opacity:.9; z-index:40;
+}
+.screen{flex:1; display:flex; flex-direction:column; position:relative; overflow:hidden; padding-top:44px}
+
+/* views */
+.view{position:absolute; inset:0; display:flex; flex-direction:column; padding-top:44px;
+  opacity:0; pointer-events:none; transition:opacity .28s ease}
+.view.on{opacity:1; pointer-events:auto}
+
+/* welcome */
+.welcome{padding:14px 30px 30px; justify-content:space-between; background:var(--surface)}
+.wm{font-family:Newsreader,Georgia,serif; font-size:44px; line-height:1.05; letter-spacing:-.02em; margin:26px 0 0}
+.wm em{font-style:italic; color:var(--ink2)}
+.wsub{color:var(--ink2); font-size:15px; margin:12px 0 0; max-width:30ch}
+.wlist{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:20px}
+.wlist li{display:grid; grid-template-columns:34px 1fr; gap:12px; align-items:start}
+.wkey{
+  font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--accent); border:1px solid var(--accent); border-radius:5px;
+  padding:3px 0; text-align:center; margin-top:2px;
+}
+.wlist strong{display:block; font-size:14.5px; font-weight:600}
+.wlist span{display:block; font-size:13.5px; color:var(--ink2); line-height:1.45}
+.btn{
+  appearance:none; border:0; width:100%; padding:15px; border-radius:14px;
+  background:var(--accent); color:var(--on-accent); font-family:inherit;
+  font-size:15px; font-weight:600; cursor:pointer;
+}
+.btn:focus-visible{outline:2px solid var(--ink); outline-offset:3px}
+
+/* app chrome */
+.appbar{padding:6px 16px 10px; display:flex; align-items:baseline; justify-content:space-between}
+.appbar .yr{font-family:Newsreader,Georgia,serif; font-size:26px; letter-spacing:-.01em}
+.appbar .yr small{font-size:13px; color:var(--ink3); font-family:Archivo,sans-serif; margin-left:7px; letter-spacing:.02em}
+.iconbtn{
+  appearance:none; background:none; border:1px solid var(--hair); color:var(--ink2);
+  border-radius:9px; height:30px; padding:0 11px; font:inherit; font-size:11.5px;
+  font-weight:600; letter-spacing:.06em; text-transform:uppercase; cursor:pointer;
+}
+.iconbtn:hover{border-color:var(--ink3); color:var(--ink)}
+
+.tabs{display:flex; gap:6px; padding:0 16px 10px; overflow-x:auto; scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  appearance:none; border:1px solid var(--hair); background:var(--surface2); color:var(--ink2);
+  border-radius:999px; padding:7px 13px 7px 9px; font:inherit; font-size:12.5px; font-weight:600;
+  white-space:nowrap; cursor:pointer; display:flex; align-items:center; gap:7px; transition:.16s;
+}
+.tab .dot{width:9px; height:9px; border-radius:3px; background:currentColor}
+.tab[aria-selected="true"]{background:var(--ink); border-color:var(--ink); color:var(--on-ink)}
+
+.legend{display:flex; gap:11px; padding:0 16px 9px; overflow-x:auto; scrollbar-width:none}
+.legend::-webkit-scrollbar{display:none}
+.legend i{
+  display:flex; align-items:center; gap:5px; white-space:nowrap;
+  font-size:10.5px; font-weight:600; letter-spacing:.03em; color:var(--ink3); font-style:normal;
+}
+.legend i b{width:10px; height:10px; border-radius:3px; display:block}
+.msum{
+  margin:20px 2px 0; padding:15px 16px; border:1px solid var(--hair); border-radius:14px;
+  background:var(--surface2);
+}
+.msum h5{margin:0 0 9px; font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ink3)}
+.msum ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px}
+.msum li{display:grid; grid-template-columns:12px 1fr auto; gap:9px; align-items:center; font-size:13px; color:var(--ink2)}
+.msum li b{width:12px; height:12px; border-radius:4px}
+.msum li span:last-child{font-variant-numeric:tabular-nums; color:var(--ink); font-weight:600}
+.scroll{flex:1; overflow-y:auto; overscroll-behavior:contain; padding:0 12px 16px}
+.scroll::-webkit-scrollbar{width:0}
+
+/* year grid */
+.months{
+  display:grid; grid-template-columns:18px repeat(12,1fr); gap:2px;
+  position:sticky; top:0; background:var(--surface); padding:4px 0 6px; z-index:5;
+}
+.months span{
+  text-align:center; font-size:11px; font-weight:700; color:var(--ink3); letter-spacing:.02em;
+}
+.grid{display:grid; grid-template-columns:18px repeat(12,1fr); gap:2px}
+.gut{
+  font-size:9px; color:var(--ink3); display:flex; align-items:center; justify-content:flex-end;
+  padding-right:3px; font-variant-numeric:tabular-nums;
+}
+.cell{
+  aspect-ratio:1/1; border-radius:3px; border:1px solid var(--empty-line);
+  background:var(--empty-fill); cursor:pointer; position:relative; padding:0;
+  transition:transform .12s ease, background .18s ease, border-color .18s ease;
+}
+.cell.filled{border-color:transparent}
+.cell.void{visibility:hidden; cursor:default}
+.cell:active{transform:scale(.86)}
+.cell.today{box-shadow:0 0 0 2px var(--surface), 0 0 0 3.5px var(--accent)}
+.cell.mark::after{
+  content:""; position:absolute; inset:0; margin:auto; width:4px; height:4px;
+  border-radius:50%; background:var(--on-fill, rgba(255,255,255,.85));
+}
+.cell:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+/* month view */
+.mhead{display:flex; align-items:center; gap:10px; padding:2px 4px 12px}
+.mhead h3{margin:0; font-family:Newsreader,Georgia,serif; font-size:24px; font-weight:500}
+.dow{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding:0 2px 6px}
+.dow span{text-align:center; font-size:10px; font-weight:700; color:var(--ink3); letter-spacing:.08em}
+.mgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding:0 2px}
+.mcell{
+  aspect-ratio:1/1; border-radius:9px; border:1px solid var(--empty-line); background:var(--empty-fill);
+  cursor:pointer; position:relative; display:flex; align-items:flex-start; justify-content:flex-start;
+  padding:5px 6px; font:inherit; font-size:11px; font-weight:600; color:var(--ink3);
+  font-variant-numeric:tabular-nums; transition:transform .12s ease, background .18s ease;
+}
+.mcell.filled{border-color:transparent; color:var(--on-fill, rgba(255,255,255,.95))}
+.mcell.blank{visibility:hidden; cursor:default}
+.mcell:active{transform:scale(.93)}
+.mcell.today{box-shadow:0 0 0 2px var(--surface), 0 0 0 3.5px var(--accent)}
+.mcell b{position:absolute; left:0; right:0; bottom:6px; text-align:center; font-size:13px; font-weight:700}
+
+/* stat bar */
+.stats{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--hair);
+  border-top:1px solid var(--hair); padding-top:1px;
+}
+.stat{background:var(--surface); padding:11px 12px 16px; text-align:center}
+.stat b{
+  display:block; font-family:Newsreader,Georgia,serif; font-size:24px; font-weight:500;
+  letter-spacing:-.01em; font-variant-numeric:tabular-nums;
+}
+.stat span{display:block; font-size:10px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--ink3)}
+
+/* sheet */
+.scrim{position:absolute; inset:0; background:rgba(10,12,10,.42); opacity:0; pointer-events:none;
+  transition:opacity .26s ease; z-index:20}
+.scrim.on{opacity:1; pointer-events:auto}
+.sheet{
+  position:absolute; left:0; right:0; bottom:0; z-index:30; background:var(--raise);
+  border-radius:24px 24px 0 0; padding:10px 20px 26px;
+  transform:translateY(100%); visibility:hidden; pointer-events:none;
+  transition:transform .3s cubic-bezier(.32,.72,0,1), visibility .3s;
+  box-shadow:0 -10px 40px rgba(0,0,0,.18);
+}
+.sheet.on{transform:translateY(0); visibility:visible; pointer-events:auto}
+.grab{width:38px; height:4px; border-radius:2px; background:var(--hair); margin:0 auto 14px}
+.sheet h4{margin:0; font-family:Newsreader,Georgia,serif; font-size:22px; font-weight:500}
+.sheet .cat{font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ink3); margin:0 0 2px}
+.stepper{display:flex; align-items:center; gap:14px; margin:18px 0 4px}
+.step{
+  appearance:none; width:46px; height:46px; border-radius:14px; border:1px solid var(--hair);
+  background:var(--surface2); color:var(--ink); font:inherit; font-size:22px; cursor:pointer;
+}
+.step:hover{background:var(--accent-soft)}
+.readout{flex:1; text-align:center}
+.readout b{display:block; font-family:Newsreader,Georgia,serif; font-size:34px; font-weight:500; line-height:1.1}
+.readout span{display:block; font-size:12px; color:var(--ink2)}
+.chips{display:flex; flex-wrap:wrap; gap:7px; margin:16px 0 0}
+.chip{
+  appearance:none; border:1px solid var(--hair); background:var(--surface2); color:var(--ink2);
+  border-radius:999px; padding:7px 12px; font:inherit; font-size:12.5px; font-weight:600; cursor:pointer;
+  display:flex; align-items:center; gap:7px;
+}
+.chip .sw{width:10px; height:10px; border-radius:3px}
+.chip[aria-pressed="true"]{border-color:var(--ink); color:var(--ink); background:var(--surface)}
+.note-in{
+  width:100%; margin-top:16px; border:1px solid var(--hair); background:var(--surface2);
+  border-radius:12px; padding:11px 12px; font:inherit; font-size:14px; color:var(--ink);
+  resize:none; min-height:64px;
+}
+.note-in::placeholder{color:var(--ink3)}
+.note-in:focus{outline:2px solid var(--accent); outline-offset:1px}
+.sheetfoot{display:flex; gap:10px; margin-top:16px}
+.ghost{
+  flex:1; appearance:none; border:1px solid var(--hair); background:none; color:var(--ink2);
+  border-radius:13px; padding:13px; font:inherit; font-size:14px; font-weight:600; cursor:pointer;
+}
+.ghost:hover{color:var(--ink); border-color:var(--ink3)}
+.solid{flex:1.4}
+
+/* ---------- spec below ---------- */
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:22px}
+.card{background:var(--surface); border:1px solid var(--hair); border-radius:16px; padding:22px 22px 24px}
+.card h3{margin:0 0 3px; font-family:Newsreader,Georgia,serif; font-size:21px; font-weight:500}
+.card .sub{margin:0 0 16px; font-size:12.5px; color:var(--ink3)}
+.card p{margin:0 0 12px; font-size:14px; color:var(--ink2)}
+.card p:last-child{margin-bottom:0}
+.ramp{display:flex; flex-direction:column; gap:7px; margin:0; padding:0; list-style:none}
+.ramp li{display:grid; grid-template-columns:20px 1fr auto; gap:10px; align-items:center; font-size:13px}
+.ramp .sw{width:20px; height:20px; border-radius:5px; border:1px solid rgba(0,0,0,.09)}
+.ramp .val{color:var(--ink3); font-size:12px; font-variant-numeric:tabular-nums}
+h2{font-family:Newsreader,Georgia,serif; font-weight:500; font-size:32px; letter-spacing:-.01em; margin:0 0 6px}
+.h2sub{margin:0 0 26px; color:var(--ink2); max-width:62ch; font-size:15.5px}
+.tag{display:inline-block; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--accent); background:var(--accent-soft); border-radius:5px; padding:3px 8px; margin-bottom:10px}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important; animation:none!important} }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Design review · v1 prototype</p>
+  <h1>Daybook —<br><em>a year you can see</em></h1>
+  <p class="lede">One column per month, one square per day. Tap a square to log it; the colour is the record. No account, no sync, no server — the year lives on the phone that drew it. Everything below is live: tap the squares, switch categories, open a day.</p>
+
+  <hr class="rule">
+
+  <div class="stage">
+    <div class="rail left">
+      <div class="note"><h4>One tap = your usual day</h4><p>Each category defines what a single tap means. Drinks logs a zero — a clear day is the common case, and it deserves the cheapest gesture. Move logs a solid session.</p></div>
+      <div class="note"><h4>Empty ≠ zero</h4><p>An outlined square is a day you didn't log. A green square is a day you logged as zero. Most trackers blur these two; keeping them apart is what makes the streak count honest.</p></div>
+      <div class="note"><h4>Hold for the detail</h4><p>Press and hold any square for the exact number, a note, and a way to clear the day. The grid stays fast; the sheet holds the nuance.</p></div>
+    </div>
+
+    <div class="device">
+      <div class="notch"></div>
+
+      <section class="view welcome on" id="v-welcome">
+        <div>
+          <h2 class="wm">Day<em>book</em></h2>
+          <p class="wsub">A wall chart for your year, sized for your pocket.</p>
+        </div>
+        <ul class="wlist">
+          <li><span class="wkey">Grid</span><div><strong>Twelve columns, one per month</strong><span>Thirty-one rows down the side. Every square is a single day of this year.</span></div></li>
+          <li><span class="wkey">Tap</span><div><strong>A tap logs the day</strong><span>Tap again to move up the scale. The square changes colour as it goes.</span></div></li>
+          <li><span class="wkey">Hold</span><div><strong>Hold for the details</strong><span>Exact numbers, a note to yourself, or clear the day entirely.</span></div></li>
+          <li><span class="wkey">Tabs</span><div><strong>Track what you want</strong><span>Six starters across the top. Use one, use all six, add your own.</span></div></li>
+          <li><span class="wkey">Safe</span><div><strong>It never leaves this phone</strong><span>No account, no upload. Backups are yours to make and yours to keep.</span></div></li>
+        </ul>
+        <button class="btn" id="start">Start my year</button>
+      </section>
+
+      <section class="view" id="v-app">
+        <div class="appbar">
+          <div class="yr" id="ttl">2026<small id="ttlsub">Year</small></div>
+          <button class="iconbtn" id="backbtn" hidden>Year</button>
+        </div>
+        <div class="tabs" role="tablist" id="tabs"></div>
+        <div class="legend" id="legend"></div>
+        <div class="scroll" id="scroll"></div>
+        <div class="stats" id="stats"></div>
+      </section>
+
+      <div class="scrim" id="scrim"></div>
+      <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Day detail">
+        <div class="grab"></div>
+        <p class="cat" id="sh-cat">Drinks</p>
+        <h4 id="sh-date">Tuesday, 14 April</h4>
+        <div class="stepper">
+          <button class="step" id="sh-minus" aria-label="Less">−</button>
+          <div class="readout"><b id="sh-val">0</b><span id="sh-lbl">Clear</span></div>
+          <button class="step" id="sh-plus" aria-label="More">+</button>
+        </div>
+        <div class="chips" id="sh-chips"></div>
+        <textarea class="note-in" id="sh-note" placeholder="A line about today, if you want one."></textarea>
+        <div class="sheetfoot">
+          <button class="ghost" id="sh-clear">Clear day</button>
+          <button class="btn solid" id="sh-done">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="rail">
+      <div class="note"><h4>Year reads, month writes</h4><p>The year grid is for seeing shape — the drift, the good stretch, the bad fortnight. Tap a month letter for a full-size calendar with comfortable targets.</p></div>
+      <div class="note"><h4>Colour direction is per category</h4><p>Less is better for Drinks; more is better for Move. Rather than force one scale, each category owns its ramp and the legend travels with the tab.</p></div>
+      <div class="note"><h4>Rest is not failure</h4><p>Move logs a rest day as a calm grey, not an alarm. A tracker that punishes recovery gets deleted in March.</p></div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <h2>The colour grammar</h2>
+  <p class="h2sub">Six ramps. Chrome stays near-neutral so the data carries every saturated colour on the screen. Drinks is exactly the scale you asked for; the other five follow its logic.</p>
+  <div class="grid2" id="specs"></div>
+
+  <hr class="rule">
+
+  <h2>Calls I made, and what I'd change</h2>
+  <p class="h2sub">Where the brief left room, here is what I chose and why — plus the three things worth deciding before a line of app code gets written.</p>
+  <div class="grid2">
+    <div class="card">
+      <span class="tag">Kept</span>
+      <h3>Squares that don't exist stay missing</h3>
+      <p>February stops at 28; the short months notch the bottom of the grid exactly like your reference sheet. It's a small thing that makes the chart read as a real calendar instead of a heat map.</p>
+    </div>
+    <div class="card">
+      <span class="tag">Kept</span>
+      <h3>Wrapping past the top clears the day</h3>
+      <p>Tap past the last level and the square returns to unlogged. It's the only way to undo a mis-tap without opening the sheet — and it means every square is reachable with one finger.</p>
+    </div>
+    <div class="card">
+      <span class="tag">Added</span>
+      <h3>A streak that counts the right thing</h3>
+      <p>Each category defines its own "good day", so the streak means something different per tab: zero drinks, any movement, six thousand steps, a note written. One number, honest in six contexts.</p>
+    </div>
+    <div class="card">
+      <span class="tag">Added</span>
+      <h3>Distinct marks for red–green safety</h3>
+      <p>Green-versus-red is the exact pair eight percent of men can't separate. A settings toggle puts a small dot on the two alert levels so the scale survives without colour. Worth building in week one, not month six.</p>
+    </div>
+    <div class="card">
+      <span class="tag">Decide</span>
+      <h3>The name</h3>
+      <p><em>Daybook</em> is a working title — it's the old word for a journal of daily entries. "Check In" is close to unsearchable on the App Store and likely collides with existing marks. Worth settling before the developer account is opened.</p>
+    </div>
+    <div class="card">
+      <span class="tag">Decide</span>
+      <h3>Backups, since there's no login</h3>
+      <p>No account means a lost phone is a lost year. I'd ship an export to a file plus opt-in iCloud private sync — still no login, still no server of ours, but the data survives a new phone.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var YEAR=2026, TODAY_M=8, TODAY_D=2;
+var MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var ML=["J","F","M","A","M","J","J","A","S","O","N","D"];
+var DIM=[31,28,31,30,31,30,31,31,30,31,30,31];
+var DOW=["S","M","T","W","T","F","S"];
+
+var CATS=[
+ {id:"drinks",name:"Drinks",unit:"drinks",tint:"#3F9E6A",def:0,max:8,
+  desc:"Less is better. Zero is the good day and the cheapest tap.",
+  stops:[{to:0,c:"#3F9E6A",l:"Clear"},{to:2,c:"#E0AE2E",l:"Light"},{to:4,c:"#C9483C",l:"Heavy"},{to:99,c:"#23262B",cDark:"#7A2233",l:"Rough"}],
+  good:function(v){return v===0}, alert:function(v){return v>=3},
+  head:function(vs){return vs.filter(function(v){return v===0}).length}, headLbl:"Clear days"},
+ {id:"move",name:"Move",unit:"effort",tint:"#55A177",def:2,max:3,
+  desc:"More is better, but rest reads as calm — not as a gap.",
+  stops:[{to:0,c:"#A8B2A6",l:"Rest"},{to:1,c:"#9FC9AC",l:"Light"},{to:2,c:"#55A177",l:"Solid"},{to:3,c:"#1F7350",l:"Hard"}],
+  good:function(v){return v>=1}, alert:function(){return false},
+  head:function(vs){return vs.filter(function(v){return v>=1}).length}, headLbl:"Sessions"},
+ {id:"steps",name:"Steps",unit:"k steps",tint:"#5E96A8",def:2,max:4,
+  desc:"Four bands by thousands. The sheet holds the real number.",
+  stops:[{to:0,c:"#C3D0D3",l:"Under 3k"},{to:1,c:"#9BBCC6",l:"3–6k"},{to:2,c:"#5E96A8",l:"6–10k"},{to:3,c:"#2A6B84",l:"10–15k"},{to:4,c:"#14455C",l:"15k plus"}],
+  good:function(v){return v>=2}, alert:function(){return false},
+  head:function(vs){return vs.filter(function(v){return v>=2}).length}, headLbl:"6k+ days"},
+ {id:"tidy",name:"Tidy",unit:"effort",tint:"#C99648",def:1,max:3,
+  desc:"House upkeep. Ochre, so it never reads as a health score.",
+  stops:[{to:0,c:"#B7AFA2",l:"Nothing"},{to:1,c:"#E2C79A",l:"Tidied"},{to:2,c:"#C99648",l:"Chores"},{to:3,c:"#96631F",l:"Deep clean"}],
+  good:function(v){return v>=1}, alert:function(){return false},
+  head:function(vs){return vs.filter(function(v){return v>=1}).length}, headLbl:"Days on it"},
+ {id:"mind",name:"Mind",unit:"mood",tint:"#B8B6B0",def:3,max:5,min:1,
+  desc:"Diverging, not sequential — heavy to light, with no colour calling a bad day a failure.",
+  stops:[{to:1,c:"#4C5B93",l:"Low"},{to:2,c:"#7C87B0",l:"Flat"},{to:3,c:"#B8B6B0",l:"Even"},{to:4,c:"#DBBE7A",l:"Good"},{to:5,c:"#E9A23C",l:"Bright"}],
+  good:function(v){return v>=3}, alert:function(){return false},
+  head:function(vs){return vs.length?(vs.reduce(function(a,b){return a+b},0)/vs.length).toFixed(1):"—"}, headLbl:"Avg mood"},
+ {id:"fuel",name:"Fuel",unit:"quality",tint:"#93B471",def:2,max:3,
+  desc:"Eating quality, not calories. A number you'd rather not type every night.",
+  stops:[{to:0,c:"#C0B49E",l:"Off plan"},{to:1,c:"#C7CE9A",l:"Rough"},{to:2,c:"#93B471",l:"Decent"},{to:3,c:"#4E8C4A",l:"Dialed"}],
+  good:function(v){return v>=2}, alert:function(){return false},
+  head:function(vs){return vs.filter(function(v){return v>=2}).length}, headLbl:"Good days"}
+];
+var byId={}; CATS.forEach(function(c){byId[c.id]=c});
+
+function isDark(){
+  var t=document.documentElement.getAttribute("data-theme");
+  if(t==="dark") return true;
+  if(t==="light") return false;
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+function col(s){ return (isDark() && s.cDark) ? s.cDark : s.c }
+function onFill(hex){
+  var r=parseInt(hex.slice(1,3),16)/255, g=parseInt(hex.slice(3,5),16)/255, b=parseInt(hex.slice(5,7),16)/255;
+  function lin(c){ return c<=0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055,2.4) }
+  var L=0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
+  return L>0.42 ? "rgba(18,21,16,.82)" : "rgba(255,255,255,.95)";
+}
+function stopFor(cat,v){
+  for(var i=0;i<cat.stops.length;i++){ if(v<=cat.stops[i].to) return cat.stops[i]; }
+  return cat.stops[cat.stops.length-1];
+}
+function minOf(cat){ return cat.min!==undefined?cat.min:0 }
+
+/* ---- seeded sample data ---- */
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var data={}, notes={};
+(function seed(){
+  CATS.forEach(function(cat,ci){
+    data[cat.id]={}; notes[cat.id]={};
+    var r=mulberry(9731+ci*617);
+    for(var m=0;m<12;m++){
+      for(var d=1;d<=DIM[m];d++){
+        if(m>TODAY_M||(m===TODAY_M&&d>TODAY_D)) continue;
+        var x=r();
+        if(x<0.09) continue; /* genuine gaps */
+        var v;
+        if(cat.id==="drinks"){ v = x<0.62?0 : x<0.83?1+Math.floor(r()*2) : x<0.95?3+Math.floor(r()*2) : 5+Math.floor(r()*3); }
+        else if(cat.id==="mind"){ v = 1+Math.floor(Math.pow(r(),0.8)*5); if(v>5)v=5; }
+        else { v = Math.floor(Math.pow(r(),0.75)*(cat.max+1)); if(v>cat.max)v=cat.max; }
+        data[cat.id][m+"-"+d]=v;
+      }
+    }
+  });
+  notes.mind[(TODAY_M)+"-1"]="Long walk after work. Head much quieter by the end of it.";
+})();
+
+/* ---- state ---- */
+var st={cat:"drinks", view:"year", month:TODAY_M, sheet:null, marks:true};
+var $=function(s){return document.querySelector(s)};
+var scroll=$("#scroll"), tabsEl=$("#tabs"), statsEl=$("#stats");
+var sheet=$("#sheet"), scrim=$("#scrim");
+
+/* ---- tabs ---- */
+CATS.forEach(function(c){
+  var b=document.createElement("button");
+  b.className="tab"; b.type="button"; b.setAttribute("role","tab");
+  b.dataset.id=c.id;
+  b.innerHTML='<i class="dot" style="background:'+c.tint+'"></i>'+c.name;
+  b.onclick=function(){ st.cat=c.id; render(); };
+  tabsEl.appendChild(b);
+});
+function syncTabs(){
+  Array.prototype.forEach.call(tabsEl.children,function(b){
+    b.setAttribute("aria-selected", b.dataset.id===st.cat ? "true":"false");
+  });
+}
+
+/* ---- press handling (tap vs hold) ---- */
+function bindPress(el,m,d){
+  var timer=null, held=false;
+  function down(e){
+    held=false;
+    timer=setTimeout(function(){ held=true; openSheet(m,d); },430);
+  }
+  function up(e){
+    clearTimeout(timer);
+    if(!held){ bump(m,d); }
+  }
+  function cancel(){ clearTimeout(timer); }
+  el.addEventListener("pointerdown",down);
+  el.addEventListener("pointerup",up);
+  el.addEventListener("pointerleave",cancel);
+  el.addEventListener("contextmenu",function(e){e.preventDefault()});
+}
+function bump(m,d){
+  var cat=byId[st.cat], k=m+"-"+d, cur=data[cat.id][k];
+  var lo=minOf(cat);
+  if(cur===undefined) data[cat.id][k]=cat.def;
+  else if(cur>=cat.max) delete data[cat.id][k];
+  else data[cat.id][k]=cur+1;
+  render();
+}
+
+/* ---- render ---- */
+function paint(el,m,d){
+  var cat=byId[st.cat], v=data[cat.id][m+"-"+d];
+  el.classList.toggle("today", m===TODAY_M && d===TODAY_D);
+  if(v===undefined){ el.classList.remove("filled","mark"); el.style.background=""; return null; }
+  var s=stopFor(cat,v);
+  el.classList.add("filled");
+  var c=col(s);
+  el.style.background=c;
+  el.style.setProperty("--on-fill", onFill(c));
+  el.classList.toggle("mark", st.marks && cat.alert(v));
+  return s;
+}
+function renderYear(){
+  var h='<div class="months"><span></span>'+ML.map(function(l,i){
+    return '<span data-m="'+i+'" style="cursor:pointer">'+l+'</span>'}).join('')+'</div>';
+  h+='<div class="grid" id="yg"></div>';
+  scroll.innerHTML=h;
+  var g=scroll.querySelector("#yg");
+  var frag=document.createDocumentFragment();
+  for(var d=1;d<=31;d++){
+    var gut=document.createElement("div");
+    gut.className="gut";
+    gut.textContent=(d===1||d%5===0)?d:"";
+    frag.appendChild(gut);
+    for(var m=0;m<12;m++){
+      var c=document.createElement("button");
+      c.type="button"; c.className="cell";
+      if(d>DIM[m]){ c.className="cell void"; c.tabIndex=-1; frag.appendChild(c); continue; }
+      c.setAttribute("aria-label",MN[m]+" "+d);
+      paint(c,m,d); bindPress(c,m,d);
+      frag.appendChild(c);
+    }
+  }
+  g.appendChild(frag);
+  Array.prototype.forEach.call(scroll.querySelectorAll(".months span[data-m]"),function(s){
+    s.onclick=function(){ st.view="month"; st.month=+s.dataset.m; render(); };
+  });
+}
+function renderMonth(){
+  var m=st.month, first=new Date(YEAR,m,1).getDay();
+  var h='<div class="mhead"><h3>'+MN[m]+'</h3></div>';
+  h+='<div class="dow">'+DOW.map(function(x){return "<span>"+x+"</span>"}).join("")+'</div>';
+  h+='<div class="mgrid" id="mg"></div>';
+  scroll.innerHTML=h;
+  var g=scroll.querySelector("#mg"), frag=document.createDocumentFragment();
+  for(var i=0;i<first;i++){ var b=document.createElement("div"); b.className="mcell blank"; frag.appendChild(b); }
+  for(var d=1;d<=DIM[m];d++){
+    var c=document.createElement("button");
+    c.type="button"; c.className="mcell";
+    c.setAttribute("aria-label",MN[m]+" "+d);
+    var s=paint(c,m,d);
+    c.innerHTML='<b>'+d+'</b>';
+    bindPress(c,m,d);
+    frag.appendChild(c);
+  }
+  g.appendChild(frag);
+  scroll.insertAdjacentHTML("beforeend", monthSummary(m));
+}
+function renderStats(){
+  var cat=byId[st.cat], map=data[cat.id];
+  var vs=[]; for(var k in map) vs.push(map[k]);
+  /* streak: consecutive good days ending today */
+  var streak=0, m=TODAY_M, d=TODAY_D;
+  while(true){
+    var v=map[m+"-"+d];
+    if(v===undefined||!cat.good(v)) break;
+    streak++; d--;
+    if(d<1){ m--; if(m<0) break; d=DIM[m]; }
+  }
+  var head=cat.head(vs);
+  statsEl.innerHTML=
+    '<div class="stat"><b>'+head+'</b><span>'+cat.headLbl+'</span></div>'+
+    '<div class="stat"><b>'+streak+'</b><span>Day streak</span></div>'+
+    '<div class="stat"><b>'+vs.length+'</b><span>Days logged</span></div>';
+}
+function renderLegend(){
+  var cat=byId[st.cat];
+  document.getElementById("legend").innerHTML=cat.stops.map(function(s){
+    return '<i><b style="background:'+col(s)+'"></b>'+s.l+'</i>';
+  }).join("")+'<i><b style="background:transparent;border:1px solid var(--empty-line)"></b>Not logged</i>';
+}
+function monthSummary(m){
+  var cat=byId[st.cat], counts={};
+  cat.stops.forEach(function(s){ counts[s.l]=0 });
+  var logged=0;
+  for(var d=1;d<=DIM[m];d++){
+    var v=data[cat.id][m+"-"+d];
+    if(v===undefined) continue;
+    logged++; counts[stopFor(cat,v).l]++;
+  }
+  var rows=cat.stops.map(function(s){
+    return '<li><b style="background:'+col(s)+'"></b><span>'+s.l+'</span><span>'+counts[s.l]+'</span></li>';
+  }).join("");
+  rows+='<li><b style="background:transparent;border:1px solid var(--empty-line)"></b><span>Not logged</span><span>'+(DIM[m]-logged)+'</span></li>';
+  return '<div class="msum"><h5>'+MN[m]+' at a glance</h5><ul>'+rows+'</ul></div>';
+}
+function render(){
+  syncTabs(); renderLegend();
+  var back=$("#backbtn");
+  if(st.view==="year"){ $("#ttl").innerHTML='2026<small>'+byId[st.cat].name+'</small>'; back.hidden=true; renderYear(); }
+  else { $("#ttl").innerHTML=MN[st.month]+'<small>'+byId[st.cat].name+'</small>'; back.hidden=false; renderMonth(); }
+  renderStats();
+}
+$("#backbtn").onclick=function(){ st.view="year"; render(); };
+
+/* ---- sheet ---- */
+function openSheet(m,d){
+  st.sheet={m:m,d:d};
+  var cat=byId[st.cat];
+  var dt=new Date(YEAR,m,d);
+  $("#sh-cat").textContent=cat.name;
+  $("#sh-date").textContent=dt.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  $("#sh-note").value=notes[cat.id][m+"-"+d]||"";
+  $("#sh-chips").innerHTML="";
+  cat.stops.forEach(function(s){
+    var b=document.createElement("button");
+    b.className="chip"; b.type="button";
+    b.innerHTML='<i class="sw" style="background:'+col(s)+'"></i>'+s.l;
+    b.onclick=function(){ data[cat.id][m+"-"+d]=s.to>cat.max?cat.max:s.to; syncSheet(); render(); };
+    b.dataset.to=s.to;
+    $("#sh-chips").appendChild(b);
+  });
+  syncSheet(); scrim.classList.add("on"); sheet.classList.add("on");
+}
+function syncSheet(){
+  if(!st.sheet) return;
+  var cat=byId[st.cat], k=st.sheet.m+"-"+st.sheet.d, v=data[cat.id][k];
+  var shown = v===undefined ? "—" : (cat.id==="steps" ? stopFor(cat,v).l : v);
+  $("#sh-val").textContent=shown;
+  $("#sh-lbl").textContent = v===undefined ? "Not logged" : stopFor(cat,v).l+" · "+cat.unit;
+  Array.prototype.forEach.call($("#sh-chips").children,function(b){
+    b.setAttribute("aria-pressed", v!==undefined && String(stopFor(cat,v).to)===b.dataset.to ? "true":"false");
+  });
+}
+function nudge(dir){
+  var cat=byId[st.cat], k=st.sheet.m+"-"+st.sheet.d, v=data[cat.id][k];
+  if(v===undefined){ data[cat.id][k]=cat.def; }
+  else { var n=v+dir, lo=minOf(cat); if(n<lo) delete data[cat.id][k]; else data[cat.id][k]=Math.min(n,cat.max); }
+  syncSheet(); render();
+}
+$("#sh-plus").onclick=function(){nudge(1)};
+$("#sh-minus").onclick=function(){nudge(-1)};
+$("#sh-clear").onclick=function(){
+  var cat=byId[st.cat], k=st.sheet.m+"-"+st.sheet.d;
+  delete data[cat.id][k]; delete notes[cat.id][k];
+  $("#sh-note").value=""; syncSheet(); render();
+};
+function closeSheet(){
+  if(st.sheet){
+    var cat=byId[st.cat], k=st.sheet.m+"-"+st.sheet.d, t=$("#sh-note").value.trim();
+    if(t) notes[cat.id][k]=t; else delete notes[cat.id][k];
+  }
+  st.sheet=null; scrim.classList.remove("on"); sheet.classList.remove("on");
+}
+$("#sh-done").onclick=closeSheet; scrim.onclick=closeSheet;
+
+/* ---- welcome ---- */
+$("#start").onclick=function(){
+  $("#v-welcome").classList.remove("on");
+  $("#v-app").classList.add("on");
+};
+
+/* ---- spec cards ---- */
+function renderSpecs(){ $("#specs").innerHTML=CATS.map(function(c){
+  var rows=c.stops.map(function(s,i){
+    var prev = i===0 ? minOf(c) : c.stops[i-1].to+1;
+    var span = prev===s.to ? String(s.to) : prev+"–"+s.to;
+    var range;
+    if(c.id==="drinks") range = s.to>=99 ? "5 or more" : span+(s.to===0?"":"");
+    else if(c.id==="steps") range = "";
+    else if(c.id==="mind") range = "mood "+span;
+    else range = "tap ×"+(s.to===0?"—":span);
+    return '<li><i class="sw" style="background:'+col(s)+'"></i><span>'+s.l+'</span><span class="val">'+range+'</span></li>';
+  }).join("");
+  return '<div class="card"><h3>'+c.name+'</h3><p class="sub">One tap logs "'+stopFor(c,c.def).l.toLowerCase()+'"</p>'+
+         '<p>'+c.desc+'</p><ul class="ramp">'+rows+'</ul></div>';
+}).join(""); }
+renderSpecs();
+
+render();
+if(window.matchMedia){
+  var mq=window.matchMedia("(prefers-color-scheme: dark)");
+  var onScheme=function(){ render(); renderSpecs(); };
+  if(mq.addEventListener) mq.addEventListener("change",onScheme); else mq.addListener(onScheme);
+}
+})();
+</script>

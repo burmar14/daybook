@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Daybook</title>
+<meta name="description" content="A year of days, one square at a time. Private to your phone.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Daybook">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-32.png" sizes="32x32">
+<meta name="theme-color" content="#EFF1ED" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101215" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
+<style>
+:root{
+  --ground:#EFF1ED; --surface:#FAFBF9; --surface2:#F0F2EE; --raise:#FFFFFF;
+  --ink:#171A16; --ink2:#5C6358; --ink3:#8A9186;
+  --hair:#D2D6CD; --accent:#33406B; --accent-soft:#E2E6F0;
+  --on-ink:#FAFBF9; --on-accent:#FAFBF9;
+  --empty-line:#CFD4C9; --empty-fill:transparent; --danger:#B03A2E;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#101215; --surface:#191C20; --surface2:#212429; --raise:#262A2F;
+    --ink:#E7EAE4; --ink2:#98A093; --ink3:#6E7670;
+    --hair:#2C3138; --accent:#93A4DA; --accent-soft:#232A3C;
+    --on-ink:#12151A; --on-accent:#12151A;
+    --empty-line:#31363D; --empty-fill:rgba(255,255,255,.035); --danger:#E4796B;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#101215; --surface:#191C20; --surface2:#212429; --raise:#262A2F;
+  --ink:#E7EAE4; --ink2:#98A093; --ink3:#6E7670;
+  --hair:#2C3138; --accent:#93A4DA; --accent-soft:#232A3C;
+  --on-ink:#12151A; --on-accent:#12151A;
+  --empty-line:#31363D; --empty-fill:rgba(255,255,255,.035); --danger:#E4796B;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{height:100%; overscroll-behavior:none}
+body{
+  margin:0; background:var(--surface); color:var(--ink);
+  font-family:Archivo,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  -webkit-user-select:none; user-select:none;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  display:flex; flex-direction:column;
+}
+button,input,textarea,select{font:inherit; color:inherit}
+.view{flex:1; display:none; flex-direction:column; min-height:0}
+.view.on{display:flex}
+
+/* ---------- welcome ---------- */
+#v-welcome{padding:8px 26px 26px; justify-content:space-between; overflow-y:auto}
+.wm{font-family:Newsreader,Georgia,serif; font-size:42px; font-weight:500; line-height:1.05; letter-spacing:-.02em; margin:18px 0 0}
+.wm em{font-style:italic; color:var(--ink2)}
+.wsub{color:var(--ink2); font-size:15px; margin:10px 0 0; max-width:30ch}
+.wlist{list-style:none; margin:26px 0; padding:0; display:flex; flex-direction:column; gap:17px}
+.wlist li{display:grid; grid-template-columns:44px 1fr; gap:12px; align-items:start}
+.wkey{font-size:9.5px; font-weight:700; letter-spacing:.02em; text-transform:uppercase; color:var(--accent);
+  border:1px solid var(--accent); border-radius:5px; padding:3px 0; text-align:center; margin-top:2px}
+.wlist strong{display:block; font-size:14.5px; font-weight:600}
+.wlist span{display:block; font-size:13.5px; color:var(--ink2); line-height:1.4}
+.btn{appearance:none; border:0; width:100%; padding:15px; border-radius:14px; background:var(--accent);
+  color:var(--on-accent); font-size:15px; font-weight:600; cursor:pointer}
+.btn:active{opacity:.85}
+.a2hs{margin:0 0 14px; padding:12px 14px; border:1px dashed var(--hair); border-radius:12px;
+  font-size:13px; color:var(--ink2); background:var(--surface2)}
+.a2hs b{color:var(--ink)}
+
+/* ---------- app chrome ---------- */
+.appbar{padding:8px 16px 8px; display:flex; align-items:center; justify-content:space-between; gap:10px}
+.ttl{font-family:Newsreader,Georgia,serif; font-size:22px; font-weight:500; letter-spacing:-.01em;
+  display:flex; align-items:baseline; gap:7px; min-width:0; white-space:nowrap; overflow:hidden}
+.ttl small{font-size:12.5px; color:var(--ink3); font-family:Archivo,sans-serif; letter-spacing:.02em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.bargrp{display:flex; gap:6px; flex-shrink:0}
+.ico{appearance:none; background:none; border:1px solid var(--hair); color:var(--ink2); border-radius:9px;
+  height:32px; min-width:32px; padding:0 10px; font-size:11.5px; font-weight:600; letter-spacing:.05em;
+  text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center}
+.ico:active{background:var(--surface2)}
+.ico[disabled]{opacity:.32}
+
+.tabs{display:flex; gap:6px; padding:0 16px 9px; overflow-x:auto; scrollbar-width:none; flex-shrink:0}
+.tabs::-webkit-scrollbar{display:none}
+.tab{appearance:none; border:1px solid var(--hair); background:var(--surface2); color:var(--ink2);
+  border-radius:999px; padding:7px 13px 7px 9px; font-size:12.5px; font-weight:600; white-space:nowrap;
+  cursor:pointer; display:flex; align-items:center; gap:7px}
+.tab .dot{width:9px; height:9px; border-radius:3px}
+.tab[aria-selected="true"]{background:var(--ink); border-color:var(--ink); color:var(--on-ink)}
+.legend{display:flex; gap:11px; padding:0 16px 9px; overflow-x:auto; scrollbar-width:none; flex-shrink:0}
+.legend::-webkit-scrollbar{display:none}
+.legend i{display:flex; align-items:center; gap:5px; white-space:nowrap; font-size:10.5px;
+  font-weight:600; letter-spacing:.03em; color:var(--ink3); font-style:normal}
+.legend i b{width:10px; height:10px; border-radius:3px; display:block}
+
+.scroll{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:0 12px 18px; min-height:0}
+.scroll::-webkit-scrollbar{width:0}
+
+/* ---------- year grid ---------- */
+.months{display:grid; grid-template-columns:18px repeat(12,1fr); gap:2px; position:sticky; top:0;
+  background:var(--surface); padding:4px 0 6px; z-index:5}
+.months span{text-align:center; font-size:11px; font-weight:700; color:var(--ink3)}
+.months span[data-m]{cursor:pointer}
+.grid{display:grid; grid-template-columns:18px repeat(12,1fr); gap:2px}
+.gut{font-size:9px; color:var(--ink3); display:flex; align-items:center; justify-content:flex-end;
+  padding-right:3px; font-variant-numeric:tabular-nums}
+.cell{aspect-ratio:1/1; border-radius:3px; border:1px solid var(--empty-line); background:var(--empty-fill);
+  cursor:pointer; position:relative; padding:0; transition:transform .1s ease}
+.cell.filled{border-color:transparent}
+.cell.void{visibility:hidden}
+.cell.future{opacity:.4}
+.cell:active{transform:scale(.85)}
+.cell.today{box-shadow:0 0 0 2px var(--surface), 0 0 0 3.5px var(--accent)}
+.cell.mark::after{content:""; position:absolute; inset:0; margin:auto; width:4px; height:4px;
+  border-radius:50%; background:var(--on-fill,rgba(255,255,255,.85))}
+
+/* ---------- month view ---------- */
+.mhead{padding:2px 4px 10px}
+.mhead h3{margin:0; font-family:Newsreader,Georgia,serif; font-size:23px; font-weight:500}
+.dow{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding:0 2px 6px}
+.dow span{text-align:center; font-size:10px; font-weight:700; color:var(--ink3); letter-spacing:.06em}
+.mgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding:0 2px}
+.mcell{aspect-ratio:1/1; border-radius:9px; border:1px solid var(--empty-line); background:var(--empty-fill);
+  cursor:pointer; position:relative; padding:0; font-size:13px; font-weight:700; color:var(--ink3);
+  font-variant-numeric:tabular-nums; transition:transform .1s ease}
+.mcell.filled{border-color:transparent; color:var(--on-fill,rgba(255,255,255,.95))}
+.mcell.blank{visibility:hidden}
+.mcell.future{opacity:.4}
+.mcell:active{transform:scale(.93)}
+.mcell.today{box-shadow:0 0 0 2px var(--surface), 0 0 0 3.5px var(--accent)}
+.mcell .n{position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); text-align:center}
+.mcell .hasnote{position:absolute; right:5px; top:5px; width:5px; height:5px; border-radius:50%;
+  background:var(--on-fill,var(--ink3)); opacity:.75}
+.msum{margin:18px 2px 0; padding:15px 16px; border:1px solid var(--hair); border-radius:14px; background:var(--surface2)}
+.msum h5{margin:0 0 9px; font-size:10.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink3)}
+.msum ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px}
+.msum li{display:grid; grid-template-columns:12px 1fr auto; gap:9px; align-items:center; font-size:13px; color:var(--ink2)}
+.msum li b{width:12px; height:12px; border-radius:4px}
+.msum li span:last-child{font-variant-numeric:tabular-nums; color:var(--ink); font-weight:600}
+
+
+/* ---------- level switcher ---------- */
+.levels{display:flex; gap:3px; margin:0 16px 9px; padding:3px; background:var(--surface2);
+  border:1px solid var(--hair); border-radius:11px; flex-shrink:0}
+.lvl{flex:1; appearance:none; border:0; background:none; color:var(--ink3); border-radius:8px;
+  padding:7px 0; font-size:12px; font-weight:600; cursor:pointer; letter-spacing:.02em}
+.lvl[aria-selected="true"]{background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.lvl[disabled]{opacity:.35}
+
+/* ---------- month: weeks as columns ---------- */
+.wkhead{display:grid; gap:5px; padding:2px 0 7px}
+.wkhead span{text-align:center; font-size:10.5px; font-weight:700; color:var(--ink3)}
+.wkhead span[data-w]{cursor:pointer}
+.mongrid{display:grid; gap:5px}
+.dowgut{font-size:9.5px; font-weight:700; color:var(--ink3); display:flex; align-items:center; justify-content:center}
+.dcell{position:relative; border-radius:7px; overflow:hidden; border:1px solid var(--empty-line);
+  background:var(--empty-fill); cursor:pointer; padding:0; display:flex; flex-direction:column;
+  aspect-ratio:1/1; transition:transform .1s ease}
+.dcell.blank{visibility:hidden}
+.dcell.future{opacity:.4}
+.dcell:active{transform:scale(.93)}
+.dcell.today{box-shadow:0 0 0 2px var(--surface), 0 0 0 3.5px var(--accent)}
+.band{flex:1; min-height:2px}
+.band.sel{flex:1.7}
+.band.none{background:transparent}
+.dnum{position:absolute; top:2px; left:3px; font-size:9px; font-weight:700; line-height:1.3;
+  padding:0 3px; border-radius:4px; background:var(--surface); color:var(--ink2);
+  font-variant-numeric:tabular-nums; opacity:.92}
+
+/* ---------- week: days as columns, categories as rows ---------- */
+.wkgrid{display:grid; gap:5px; align-items:stretch; height:100%}
+.wkcolhead{text-align:center; font-size:10px; font-weight:700; color:var(--ink3); line-height:1.25; cursor:pointer}
+.wkcolhead b{display:block; font-size:13px; color:var(--ink); font-variant-numeric:tabular-nums}
+.wkcolhead.today b{color:var(--accent)}
+.wkrowhead{font-size:11.5px; font-weight:600; color:var(--ink2); display:flex; align-items:center;
+  gap:6px; min-width:0; padding-right:4px; cursor:pointer}
+.wkrowhead.sel{color:var(--ink)}
+.wkrowhead.sel span{text-decoration:underline; text-underline-offset:3px; text-decoration-thickness:1.5px}
+.drow.sel{border-color:var(--ink3)}
+.wkrowhead i{width:8px; height:8px; border-radius:3px; flex-shrink:0}
+.wkrowhead span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.wcell{border-radius:7px; border:1px solid var(--empty-line); background:var(--empty-fill); cursor:pointer;
+  min-height:42px; padding:0; font-size:10.5px; font-weight:700; color:var(--on-fill,var(--ink3));
+  font-variant-numeric:tabular-nums; transition:transform .1s ease}
+.wcell.filled{border-color:transparent}
+.wcell.future{opacity:.4}
+.wcell:active{transform:scale(.93)}
+.wcell.today{box-shadow:0 0 0 2px var(--surface), 0 0 0 2.5px var(--accent)}
+
+/* ---------- day view ---------- */
+.dayhead{padding:4px 2px 12px}
+.dayhead h3{margin:0; font-family:Newsreader,Georgia,serif; font-size:23px; font-weight:500}
+.dayhead p{margin:2px 0 0; font-size:12.5px; color:var(--ink3)}
+.drow{display:grid; grid-template-columns:auto 1fr auto auto; gap:11px; align-items:center;
+  padding:12px 13px; border:1px solid var(--hair); border-radius:13px; background:var(--surface2); margin-bottom:8px}
+.drow .swatch{width:30px; height:30px; border-radius:9px; border:1px solid var(--empty-line)}
+.drow .meta{min-width:0}
+.drow .nm{font-size:14.5px; font-weight:600; display:block}
+.drow .vl{font-size:12.5px; color:var(--ink3); display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.drow .mini{appearance:none; width:34px; height:34px; border-radius:10px; border:1px solid var(--hair);
+  background:var(--surface); font-size:17px; cursor:pointer}
+.drow .mini:active{background:var(--accent-soft)}
+.dnote{margin:-4px 2px 12px; font-size:12.5px; color:var(--ink2); font-style:italic; padding-left:2px}
+
+/* ---------- stats ---------- */
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--hair);
+  border-top:1px solid var(--hair); flex-shrink:0}
+.stat{background:var(--surface); padding:10px 8px 12px; text-align:center}
+.stat b{display:block; font-family:Newsreader,Georgia,serif; font-size:23px; font-weight:500;
+  font-variant-numeric:tabular-nums}
+.stat span{display:block; font-size:9.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ink3)}
+
+/* ---------- sheet ---------- */
+.scrim{position:fixed; inset:0; background:rgba(10,12,10,.45); opacity:0; pointer-events:none;
+  transition:opacity .25s ease; z-index:20}
+.scrim.on{opacity:1; pointer-events:auto}
+.sheet{position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--raise);
+  border-radius:24px 24px 0 0; padding:10px 20px calc(24px + env(safe-area-inset-bottom));
+  transform:translateY(100%); visibility:hidden; pointer-events:none;
+  transition:transform .28s cubic-bezier(.32,.72,0,1), visibility .28s;
+  box-shadow:0 -10px 40px rgba(0,0,0,.2); max-height:88%; overflow-y:auto}
+.sheet.on{transform:translateY(0); visibility:visible; pointer-events:auto}
+.grab{width:38px; height:4px; border-radius:2px; background:var(--hair); margin:0 auto 14px}
+.sheet h4{margin:0; font-family:Newsreader,Georgia,serif; font-size:21px; font-weight:500}
+.sheet .cat{font-size:10.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink3); margin:0 0 2px}
+.stepper{display:flex; align-items:center; gap:14px; margin:16px 0 2px}
+.step{appearance:none; width:48px; height:48px; border-radius:14px; border:1px solid var(--hair);
+  background:var(--surface2); font-size:22px; cursor:pointer}
+.step:active{background:var(--accent-soft)}
+.readout{flex:1; text-align:center; min-width:0}
+.readout b{display:block; font-family:Newsreader,Georgia,serif; font-size:32px; font-weight:500; line-height:1.15}
+.readout span{display:block; font-size:12px; color:var(--ink2)}
+.chips{display:flex; flex-wrap:wrap; gap:7px; margin:14px 0 0}
+.chip{appearance:none; border:1px solid var(--hair); background:var(--surface2); color:var(--ink2);
+  border-radius:999px; padding:7px 12px; font-size:12.5px; font-weight:600; cursor:pointer;
+  display:flex; align-items:center; gap:7px}
+.chip .sw{width:10px; height:10px; border-radius:3px}
+.chip[aria-pressed="true"]{border-color:var(--ink); color:var(--ink); background:var(--surface)}
+.note-in{width:100%; margin-top:14px; border:1px solid var(--hair); background:var(--surface2);
+  border-radius:12px; padding:11px 12px; font-size:15px; resize:none; min-height:62px;
+  -webkit-user-select:text; user-select:text}
+.note-in:focus{outline:2px solid var(--accent); outline-offset:1px}
+.sheetfoot{display:flex; gap:10px; margin-top:14px}
+.ghost{flex:1; appearance:none; border:1px solid var(--hair); background:none; color:var(--ink2);
+  border-radius:13px; padding:13px; font-size:14px; font-weight:600; cursor:pointer}
+.solid{flex:1.4}
+
+/* ---------- settings ---------- */
+#v-set .scroll{padding:0 18px 30px}
+.sec{margin:20px 0 0}
+.sec h5{margin:0 0 9px; font-size:10.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink3)}
+.rows{border:1px solid var(--hair); border-radius:14px; overflow:hidden; background:var(--surface2)}
+.row{display:flex; align-items:center; gap:11px; padding:13px 14px; border-bottom:1px solid var(--hair)}
+.row:last-child{border-bottom:0}
+.row .sw{width:12px; height:12px; border-radius:4px; flex-shrink:0}
+.row .nm{flex:1; font-size:14.5px; font-weight:500; min-width:0}
+.row .sub{display:block; font-size:12px; color:var(--ink3); font-weight:400}
+.row button.act{appearance:none; background:none; border:0; color:var(--accent); font-size:13.5px; font-weight:600; cursor:pointer; padding:4px}
+.row button.act.dngr{color:var(--danger)}
+.toggle{appearance:none; width:46px; height:28px; border-radius:14px; background:var(--hair); position:relative;
+  cursor:pointer; border:0; flex-shrink:0; transition:background .18s}
+.toggle::after{content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%;
+  background:#fff; transition:transform .18s; box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.toggle[aria-pressed="true"]{background:var(--accent)}
+.toggle[aria-pressed="true"]::after{transform:translateX(18px)}
+.hint{font-size:12.5px; color:var(--ink3); margin:8px 2px 0; line-height:1.45}
+.field{display:flex; flex-direction:column; gap:7px; margin-top:12px}
+.field label{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ink3)}
+.field input,.field select{border:1px solid var(--hair); background:var(--surface2); border-radius:11px;
+  padding:12px; font-size:15px; -webkit-user-select:text; user-select:text}
+.hues{display:flex; gap:9px; flex-wrap:wrap}
+.hue{width:34px; height:34px; border-radius:10px; border:2px solid transparent; cursor:pointer}
+.hue[aria-pressed="true"]{border-color:var(--ink)}
+.toast{position:fixed; left:50%; bottom:calc(28px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(14px);
+  background:var(--ink); color:var(--on-ink); padding:11px 18px; border-radius:11px; font-size:13.5px;
+  font-weight:600; opacity:0; pointer-events:none; transition:.24s; z-index:50; max-width:86%; text-align:center}
+.toast.on{opacity:1; transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<section class="view on" id="v-welcome">
+  <div>
+    <h1 class="wm">Day<em>book</em></h1>
+    <p class="wsub">A wall chart for your year, sized for your pocket.</p>
+    <ul class="wlist">
+      <li><span class="wkey">Grid</span><div><strong>Twelve columns, one per month</strong><span>Thirty-one rows down the side. Every square is a single day.</span></div></li>
+      <li><span class="wkey">Zoom</span><div><strong>Year, month, week, day</strong><span>The closer you go, the more you see at once — by Week view every category is on screen together.</span></div></li>
+      <li><span class="wkey">Tap</span><div><strong>A tap logs the day</strong><span>Tap again to move up the scale. Tap past the top to clear it.</span></div></li>
+      <li><span class="wkey">Hold</span><div><strong>Hold for the details</strong><span>Exact numbers, a note to yourself, or clear the day.</span></div></li>
+      <li><span class="wkey">Tabs</span><div><strong>Track what you want</strong><span>Six to start. Turn any off, or add your own in Settings.</span></div></li>
+      <li><span class="wkey">Safe</span><div><strong>It never leaves this phone</strong><span>No account, no upload. Export a backup any time.</span></div></li>
+    </ul>
+  </div>
+  <div>
+    <div class="a2hs" id="a2hs" hidden>
+      For the real thing, tap <b>Share</b> then <b>Add to Home Screen</b>. It opens like an app and works offline.
+    </div>
+    <button class="btn" id="start">Start my year</button>
+  </div>
+</section>
+
+<section class="view" id="v-app">
+  <div class="appbar">
+    <div class="ttl" id="ttl"></div>
+    <div class="bargrp">
+      <button class="ico" id="prev" aria-label="Previous year">‹</button>
+      <button class="ico" id="next" aria-label="Next year">›</button>
+      <button class="ico" id="setbtn" aria-label="Settings">•••</button>
+    </div>
+  </div>
+  <div class="levels" id="levels"></div>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="legend" id="legend"></div>
+  <div class="scroll" id="scroll"></div>
+  <div class="stats" id="stats"></div>
+</section>
+
+<section class="view" id="v-set">
+  <div class="appbar">
+    <div class="ttl">Settings</div>
+    <div class="bargrp"><button class="ico" id="setback">Done</button></div>
+  </div>
+  <div class="scroll" id="setbody"></div>
+</section>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Day detail">
+  <div class="grab"></div>
+  <p class="cat" id="sh-cat"></p>
+  <h4 id="sh-date"></h4>
+  <div class="stepper">
+    <button class="step" id="sh-minus" aria-label="Less">−</button>
+    <div class="readout"><b id="sh-val">—</b><span id="sh-lbl"></span></div>
+    <button class="step" id="sh-plus" aria-label="More">+</button>
+  </div>
+  <div class="chips" id="sh-chips"></div>
+  <textarea class="note-in" id="sh-note" placeholder="A line about today, if you want one."></textarea>
+  <div class="sheetfoot">
+    <button class="ghost" id="sh-clear">Clear day</button>
+    <button class="btn solid" id="sh-done">Done</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="importfile" accept="application/json,.json" hidden>
+
+<script src="app.js"></script>
+</body>
+</html>
