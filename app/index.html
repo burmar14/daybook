@@ -106,8 +106,15 @@ button,input,textarea,select{font:inherit; color:inherit}
 /* ---------- year grid ---------- */
 .months{display:grid; grid-template-columns:18px repeat(12,1fr); gap:2px; position:sticky; top:0;
   background:var(--surface); padding:4px 0 6px; z-index:5}
-.months span{text-align:center; font-size:11px; font-weight:700; color:var(--ink3)}
-.months span[data-m]{cursor:pointer}
+.months span{text-align:center; font-size:11px; font-weight:700; color:var(--ink3); white-space:nowrap}
+.months span[data-c]{cursor:pointer}
+.months .yr{font-style:normal; font-size:7.5px; font-weight:700; color:var(--accent); margin-left:1px; vertical-align:top}
+.cell.ny::before{content:""; position:absolute; left:-3px; top:-2px; bottom:-2px; width:2px; border-radius:1px;
+  background:var(--ink3); opacity:.5; pointer-events:none}
+.ymode{display:flex; gap:6px; padding:0 16px 9px; flex-shrink:0}
+.ym{appearance:none; border:1px solid var(--hair); background:none; color:var(--ink3); border-radius:999px;
+  padding:5px 12px; font-size:11.5px; font-weight:600; cursor:pointer}
+.ym[aria-pressed="true"]{border-color:var(--ink3); color:var(--ink); background:var(--surface2)}
 .grid{display:grid; grid-template-columns:18px repeat(12,1fr); gap:2px}
 .gut{font-size:9px; color:var(--ink3); display:flex; align-items:center; justify-content:flex-end;
   padding-right:3px; font-variant-numeric:tabular-nums}
@@ -208,6 +215,29 @@ button,input,textarea,select{font:inherit; color:inherit}
   background:var(--surface); font-size:17px; cursor:pointer}
 .drow .mini:active{background:var(--accent-soft)}
 .dnote{margin:-4px 2px 12px; font-size:12.5px; color:var(--ink2); font-style:italic; padding-left:2px}
+
+/* ---------- daily quote ---------- */
+.ticker{appearance:none; display:block; width:100%; border:0; border-top:1px solid var(--hair);
+  background:var(--surface); color:var(--ink2); padding:9px 0 10px; overflow:hidden; white-space:nowrap;
+  cursor:pointer; text-align:left; flex-shrink:0;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent);
+          mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent)}
+.tk-track{display:inline-block; padding-left:100%; font-family:Newsreader,Georgia,serif; font-style:italic;
+  font-size:15px; line-height:1.3; animation:tick var(--tk-dur,40s) linear infinite; will-change:transform}
+.tk-by{font-family:Archivo,sans-serif; font-style:normal; font-size:10.5px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--ink3); margin-left:12px}
+.ticker:active .tk-track{animation-play-state:paused}
+@keyframes tick{from{transform:translateX(0)} to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){
+  .tk-track{animation:none; display:block; padding:0 16px; overflow:hidden; text-overflow:ellipsis}
+}
+.qtext{margin:14px 0 10px; font-family:Newsreader,Georgia,serif; font-size:23px; line-height:1.35; text-wrap:balance}
+.qby{margin:0; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ink3)}
+.dquote{margin:0 2px 16px; padding:0 0 14px; border-bottom:1px solid var(--hair); cursor:pointer}
+.dquote blockquote{margin:0; font-family:Newsreader,Georgia,serif; font-style:italic; font-size:16.5px;
+  line-height:1.4; color:var(--ink2)}
+.dquote figcaption{margin-top:6px; font-size:10.5px; font-weight:700; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink3)}
 
 /* ---------- stats ---------- */
 .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--hair);
@@ -318,9 +348,11 @@ button,input,textarea,select{font:inherit; color:inherit}
     </div>
   </div>
   <div class="levels" id="levels"></div>
+  <div class="ymode" id="ymode" hidden></div>
   <div class="tabs" role="tablist" id="tabs"></div>
   <div class="legend" id="legend"></div>
   <div class="scroll" id="scroll"></div>
+  <button class="ticker" id="ticker" type="button" aria-label="Today's quote. Tap to read it in full." hidden><span class="tk-track" id="tk-track"></span></button>
   <div class="stats" id="stats"></div>
 </section>
 
@@ -349,9 +381,17 @@ button,input,textarea,select{font:inherit; color:inherit}
     <button class="btn solid" id="sh-done">Done</button>
   </div>
 </div>
+<div class="sheet" id="qsheet" role="dialog" aria-modal="true" aria-label="Quote of the day">
+  <div class="grab"></div>
+  <p class="cat" id="q-when"></p>
+  <p class="qtext" id="q-text"></p>
+  <p class="qby" id="q-by"></p>
+  <div class="sheetfoot"><button class="btn solid" id="q-done">Done</button></div>
+</div>
 <div class="toast" id="toast"></div>
 <input type="file" id="importfile" accept="application/json,.json" hidden>
 
+<script src="quotes.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

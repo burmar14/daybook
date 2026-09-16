@@ -1,7 +1,7 @@
 /* Daybook service worker — cache-first for the shell, so it opens offline. */
-var CACHE = "daybook-v2";
+var CACHE = "daybook-v5";
 var SHELL = [
-  "./", "./index.html", "./app.js", "./manifest.webmanifest",
+  "./", "./index.html", "./app.js", "./quotes.js", "./manifest.webmanifest",
   "./icons/icon-180.png", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-32.png"
 ];
 
